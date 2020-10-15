@@ -12,11 +12,49 @@ namespace LeagueNetLogAnalyzer
         {
             //string testFolder = @"C:\Riot Games\League of Legends\Logs\GameLogs\2020-10-12T23-00-17";
             //AnalyzeNetworkData(GetNetLogContents(testFolder));
-            AnalyzeLatestNetLogData();
+            OutputInfo outputInfo = AnalyzeLatestNetLogData();
+            if(outputInfo != null)
+            {
+                string pingWebpage = CreateOutputPage(outputInfo);
+                Console.WriteLine($"Open The file here at: {pingWebpage}");
+                Console.WriteLine("Press any key to exit.");
+                Console.ReadKey();
+            }
+        }
+
+        static string CreateOutputPage(OutputInfo outputInfo)
+        {
+            string htmlBase = $"<h1>Ping Data for League of Legends game on {outputInfo.GameDate.ToString("g", CultureInfo.CreateSpecificCulture("en-US"))}</h1>";
+                
+            htmlBase += "<table>";
+
+            htmlBase += "<tr><th>Time (min)</th><th>Ping (ms)</th></tr>";
+
+            foreach(var pingData in outputInfo.PingDatas)
+            {
+                htmlBase += $"<tr><td>{pingData.Time}</td><td>{pingData.Ping}</td></tr>";
+            }
+
+            htmlBase += "</table>";
+
+            string currDir = Directory.GetCurrentDirectory();
+
+            string projectDirectory = Directory.GetParent(currDir).Parent.Parent.FullName;
+
+            string outputDirectory = Path.Combine(projectDirectory, "Output");
+
+            string outputFile = Path.Combine(outputDirectory, "ping_data.html");
+
+            File.WriteAllText(outputFile, htmlBase);
+            //Console.WriteLine(projectDirectory);
+
+            return outputFile;
             
         }
 
-        static void AnalyzeLatestNetLogData()
+        
+
+        static OutputInfo AnalyzeLatestNetLogData()
         {
             string[] netLogFolders = System.IO.Directory.GetDirectories(@"C:\Riot Games\League of Legends\Logs\GameLogs");
             DateTime latestDate = new DateTime(0);
@@ -45,11 +83,21 @@ namespace LeagueNetLogAnalyzer
 
             if (!String.IsNullOrEmpty(latestFolder))
             {
-                Console.WriteLine($"Ping data from latest game:");
-                AnalyzeNetworkData(GetNetLogContents(latestFolder));
+                //Console.WriteLine($"Ping data from latest game:");
+                Console.WriteLine($"Analyzing ping data from latest game on {latestDate.ToString("yyyy-MM-dd")}");
+                List<PingData> pingDatas = AnalyzeNetworkData(GetNetLogContents(latestFolder));
+                OutputInfo outputInfo = new OutputInfo
+                {
+                    GameDate = latestDate,
+                    PingDatas = pingDatas
+                };
+                Console.WriteLine("Ping data analyzed!");
+
+                return outputInfo;
             } else
             {
                 Console.WriteLine("No network data available to analyze!");
+                return null;
             }
             
         }
@@ -91,13 +139,23 @@ namespace LeagueNetLogAnalyzer
             return networkDatas;
         }
 
-        static void AnalyzeNetworkData(List<NetworkData> networkDatas)
+        static List<PingData> AnalyzeNetworkData(List<NetworkData> networkDatas)
         {
+            List<PingData> pingDatas = new List<PingData>();
             foreach(var data in networkDatas)
             {
                 double numGameMin = Math.Round(((double) data.Time / 60000), 2);
-                Console.WriteLine($"Ping at {numGameMin} minutes: {data.Ping} ms");
+                PingData pingData = new PingData
+                {
+                    Time = numGameMin,
+                    Ping = data.Ping
+                };
+
+                pingDatas.Add(pingData);
+                //Console.WriteLine($"Ping at {numGameMin} minutes: {data.Ping} ms");
             }
+
+            return pingDatas;
         }
 
         static NetworkData ConvertLineToNetworkData(string line)
