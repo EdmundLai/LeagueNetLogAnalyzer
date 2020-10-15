@@ -32,7 +32,7 @@ namespace LeagueNetLogAnalyzer
 
             foreach(var pingData in outputInfo.PingDatas)
             {
-                htmlBase += $"<tr><td>{pingData.Time}</td><td>{pingData.Ping}</td></tr>";
+                htmlBase += $"<tr><td>{pingData.Time.ToString(@"mm\:ss" , new CultureInfo("en-US"))}</td><td>{pingData.Ping}</td></tr>";
             }
 
             htmlBase += "</table>";
@@ -144,10 +144,10 @@ namespace LeagueNetLogAnalyzer
             List<PingData> pingDatas = new List<PingData>();
             foreach(var data in networkDatas)
             {
-                double numGameMin = Math.Round(((double) data.Time / 60000), 2);
+                //double numGameMin = Math.Round(((double) data.Time / 60000), 2);
                 PingData pingData = new PingData
                 {
-                    Time = numGameMin,
+                    Time = TimeSpan.FromMilliseconds(data.Time),
                     Ping = data.Ping
                 };
 

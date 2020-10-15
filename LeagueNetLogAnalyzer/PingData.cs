@@ -6,7 +6,7 @@ namespace LeagueNetLogAnalyzer
 {
     class PingData
     {
-        public double Time { get; set; }
+        public TimeSpan Time { get; set; }
         public int Ping { get; set; }
     }
 }
