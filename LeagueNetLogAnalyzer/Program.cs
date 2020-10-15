@@ -16,7 +16,14 @@ namespace LeagueNetLogAnalyzer
             if(outputInfo != null)
             {
                 string pingWebpage = CreateOutputPage(outputInfo);
-                Console.WriteLine($"Open The file here at: {pingWebpage}");
+                if(String.IsNullOrEmpty(pingWebpage))
+                {
+                    Console.WriteLine("Error creating output data page.");
+                } else
+                {
+                    Console.WriteLine($"Open The file here at: {pingWebpage}");
+                }
+                
                 Console.WriteLine("Press any key to exit.");
                 Console.ReadKey();
             }
@@ -39,16 +46,28 @@ namespace LeagueNetLogAnalyzer
 
             string currDir = Directory.GetCurrentDirectory();
 
-            string projectDirectory = Directory.GetParent(currDir).Parent.Parent.FullName;
+            string outputDirectory = Path.Combine(currDir, "Output");
 
-            string outputDirectory = Path.Combine(projectDirectory, "Output");
+            try
+            {
+                if(!Directory.Exists(outputDirectory))
+                {
+                    Directory.CreateDirectory(outputDirectory);
+                }
+                string outputFile = Path.Combine(outputDirectory, "ping_data.html");
 
-            string outputFile = Path.Combine(outputDirectory, "ping_data.html");
+                File.WriteAllText(outputFile, htmlBase);
+                //Console.WriteLine(projectDirectory);
 
-            File.WriteAllText(outputFile, htmlBase);
-            //Console.WriteLine(projectDirectory);
+                return outputFile;
 
-            return outputFile;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"The process failed: {e.ToString()}");
+
+                return "";
+            }
             
         }
 
